@@ -1,6 +1,6 @@
 {
   "name": "@sudobility/mixr_client",
-  "version": "0.1.49",
+  "version": "0.1.50",
   "description": "TypeScript client library for MIXR API",
   "type": "module",
   "main": "dist/index.js",
