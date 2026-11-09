@@ -3,157 +3,119 @@
 > **Git policy — never auto-commit or auto-push.** Leave your work in the working tree.
 > Run `git commit`, `git push`, `gh pr create`, or `scripts/push_all.sh` **only when the user
 > explicitly asks in that turn**. Approval for an earlier change does not carry forward, and
-> finishing a task is not permission to commit it.
+> finishing a task is not permission to commit it. Stay on the current branch; do not create
+> feature branches for code changes.
 
-React client library for MIXR API with TanStack Query hooks and Zustand state management.
+TypeScript client library for the MIXR cocktail recipe API: `MixrClient` (HTTP), TanStack Query hooks, and a Zustand recipe store. Pure library — no app entrypoint. Ships ESM only; `dist/` is the sole published artifact.
 
-**npm**: `@sudobility/mixr_client` (restricted)
+**npm**: `@sudobility/mixr_client` — published to **GitHub Packages** (restricted), license **BUSL-1.1**.
 
 ## Tech Stack
 
-- **Language**: TypeScript
-- **Runtime**: Bun
-- **Package Manager**: Bun (do not use npm/yarn/pnpm for installing dependencies)
-- **Build**: TypeScript compiler (tsc)
+- **Language**: TypeScript (strict; `moduleResolution: "bundler"`, `module: ESNext`, target ES2020)
+- **Runtime / package manager**: Bun — do NOT use npm/yarn/pnpm to install
+- **Build**: `tsc` + post-build `scripts/fix-esm-imports.mjs`
 - **Test**: Vitest + React Testing Library + happy-dom
+
+## Commands
+
+```bash
+bun install          # restore deps (node_modules is gitignored and may be absent)
+bun run build        # tsc -p tsconfig.build.json && node scripts/fix-esm-imports.mjs
+bun run build:watch  # tsc --watch
+bun run clean        # remove dist/
+bun run test:unit    # Vitest run (NOTE: no `test` script; use test:unit / test:watch)
+bun run test:watch   # Vitest watch
+bun run lint         # ESLint src --ext .ts,.tsx
+bun run typecheck    # tsc --noEmit
+bun run format       # Prettier write
+```
 
 ## Project Structure
 
 ```
 src/
-├── index.ts              # Public exports (all APIs)
-├── types.ts              # Type re-exports from mixr_types
+├── index.ts                  # Public barrel: re-exports network/utils/hooks/stores + all types from ./types
+├── types.ts                  # Type re-exports from @sudobility/mixr_types
 ├── network/
-│   └── mixr-client.ts    # HTTP client (30+ API methods)
+│   ├── index.ts
+│   └── mixr-client.ts        # MixrClient class — all ~30 API methods
 ├── hooks/
-│   ├── use-equipments.ts           # Equipment queries (30min cache)
-│   ├── use-equipment-subcategories.ts # Subcategory queries (1hr cache)
-│   ├── use-ingredients.ts          # Ingredient queries (30min cache)
-│   ├── use-ingredient-subcategories.ts # Subcategory queries (1hr cache)
-│   ├── use-moods.ts                # Mood queries (1hr cache)
-│   ├── use-recipes.ts              # Infinite scroll recipes (5min cache)
-│   ├── use-recipe.ts               # Single recipe with store (10min cache)
-│   └── use-create-recipe.ts        # Recipe generation mutation
-├── stores/
-│   └── recipe-store.ts    # Zustand store with persistence
-├── utils/
-│   └── helpers.ts         # buildUrl, createHeaders, handleApiError
-└── __tests__/             # Comprehensive test suite
-    ├── setup.ts
-    ├── network/
-    ├── hooks/
-    ├── stores/
-    └── utils/
+│   ├── index.ts              # Hook barrel + QUERY_KEYS + UseRecipeStore type
+│   ├── query-keys.ts         # QUERY_KEYS: single source of truth for TanStack query keys
+│   ├── use-recipe-store-type.ts
+│   ├── use-equipments.ts / use-equipment-subcategories.ts
+│   ├── use-ingredients.ts / use-ingredient-subcategories.ts
+│   ├── use-moods.ts
+│   ├── use-recipes.ts / use-recipe.ts / use-create-recipe.ts
+│   └── use-current-user.ts, use-update-user.ts, use-user-preferences.ts,
+│       use-update-user-preferences.ts, use-user-recipes.ts, use-user-favorites.ts,
+│       use-toggle-favorite.ts  (useAddFavorite + useRemoveFavorite)
+├── stores/{index.ts, recipe-store.ts}   # createRecipeStore (Zustand + persist)
+├── utils/{index.ts, helpers.ts}         # buildUrl, createHeaders, handleApiError
+└── __tests__/                           # Vitest suites mirroring the layout (setup.ts, network/, hooks/, stores/, utils/)
 ```
 
-## Commands
+See `HOOKS.md` for per-hook usage docs.
 
-```bash
-bun run build        # Build to dist/
-bun run build:watch  # Watch mode build
-bun run clean        # Remove dist/
-bun run test         # Run Vitest
-bun run lint         # Run ESLint
-bun run typecheck    # TypeScript check
-bun run format       # Format with Prettier
-```
-
-## MixrClient API
+## MixrClient
 
 ```typescript
-import { MixrClient } from '@sudobility/mixr_client';
-
-const client = new MixrClient(baseUrl, networkClient, authToken?);
-// OR
-const client = new MixrClient({ baseUrl, networkClient, authToken? });
+new MixrClient(baseUrl, networkClient, authToken?)
+new MixrClient({ baseUrl, networkClient, authToken? })  // both constructors supported
+client.setAuthToken(token) / client.getAuthToken()
 ```
+
+Wraps a `NetworkClient` (`@sudobility/types`). A private `request<T>()` helper centralizes method/URL/header building and error handling: on `!response.ok || !response.data` it throws `handleApiError(response, name)`.
 
 | Category | Methods |
 |----------|---------|
-| Health | `healthCheck()`, `getVersion()` |
-| Equipment | `getEquipment(params?)`, `getEquipmentById(id)`, `getEquipmentSubcategories()` |
-| Ingredients | `getIngredients(params?)`, `getIngredientById(id)`, `getIngredientSubcategories()` |
+| Health | `getVersion()`, `healthCheck()` |
+| Equipment | `getEquipment(subcategory?)`, `getEquipmentById(id)`, `getEquipmentSubcategories()` |
+| Ingredients | `getIngredients(subcategory?)`, `getIngredientById(id)`, `getIngredientSubcategories()` |
 | Moods | `getMoods()`, `getMoodById(id)` |
 | Recipes | `generateRecipe(req)`, `getRecipes(params?)`, `getRecipeById(id)` |
-| Ratings | `submitRecipeRating(id, req)`, `getRecipeRatings(id)`, `getRecipeRatingAggregate(id)`, `deleteRecipeRating(recipeId, ratingId)` |
-| User | `getCurrentUser()`, `updateCurrentUser(req)`, `getUserPreferences()`, `updateUserPreferences(req)`, `getUserRecipes()`, `getUserFavorites()` |
-| Favorites | `addFavorite(req)`, `removeFavorite(recipeId)` |
+| Ratings | `submitRecipeRating(id, req)`, `getRecipeRatings(id, params?)`, `getRecipeRatingAggregate(id)`, `deleteRecipeRating(recipeId, ratingId)` |
+| User (auth) | `getCurrentUser()`, `updateCurrentUser(req)`, `getUserPreferences()`, `updateUserPreferences(req)`, `getUserRecipes(params?)`, `getUserFavorites(params?)` |
+| Favorites (auth) | `addFavorite(req)`, `removeFavorite(recipeId)` |
+
+Subcategory filters are passed as a plain string (e.g. `getEquipment('essential')`), NOT an object.
 
 ## Hooks
 
-All hooks accept `client: MixrClient` as first parameter.
+Every hook takes `client: MixrClient` first. Recipe hooks that touch the cache also take `useRecipeStore` (the store hook from `createRecipeStore`).
 
-| Hook | Type | Store | Cache |
-|------|------|-------|-------|
-| `useEquipments` | Query | No | 30min |
-| `useEquipmentSubcategories` | Query | No | 1hr |
-| `useIngredients` | Query | No | 30min |
-| `useIngredientSubcategories` | Query | No | 1hr |
-| `useMoods` | Query | No | 1hr |
-| `useRecipes` | InfiniteQuery | Yes | 5min |
-| `useRecipe` | Query | Yes (placeholder) | 10min |
-| `useCreateRecipe` | Mutation | Yes (update) | - |
+| Hook | Kind | Args after client | staleTime |
+|------|------|-------------------|-----------|
+| `useEquipments` / `useIngredients` | Query | `(subcategory?)` | 30 min |
+| `useEquipmentSubcategories` / `useIngredientSubcategories` / `useMoods` | Query | `()` | 1 hr |
+| `useRecipes` | InfiniteQuery | `(useRecipeStore, limit=10)` | 5 min |
+| `useRecipe` | Query | `(useRecipeStore, recipeId)` | 10 min |
+| `useCreateRecipe` | Mutation | `(useRecipeStore)` | — |
+| `useCurrentUser` / `useUserPreferences` | Query | `(enabled=true)` | 10 min |
+| `useUserRecipes` / `useUserFavorites` | Query | `(enabled=true)` | 5 min |
+| `useUpdateUser` / `useUpdateUserPreferences` / `useAddFavorite` / `useRemoveFavorite` | Mutation | `()` | — |
 
-### Query Key Structure
-- Equipment: `['equipment', 'list', subcategory?]`, `['equipment', 'subcategories']`
-- Ingredients: `['ingredients', 'list', subcategory?]`, `['ingredients', 'subcategories']`
-- Moods: `['moods', 'list']`
-- Recipes: `['recipes', 'list', limit]`, `['recipes', 'detail', recipeId]`
+Query keys live in `QUERY_KEYS` (`query-keys.ts`): `equipment.{all,list(sub?),subcategories}`, `ingredients.{…}`, `moods.{all,list}`, `recipes.{all,list(limit),detail(id)}`, `user.{all,profile,preferences,recipes,favorites}`. Mutations invalidate via these keys. Use them for invalidation rather than inline arrays.
 
 ## Store
 
 ```typescript
-import { createRecipeStore } from '@sudobility/mixr_client';
-
-// Factory pattern - inject storage for platform compatibility
-const useRecipeStore = createRecipeStore(localStorage);
+const useRecipeStore = createRecipeStore(storage /* PlatformStorage */, storageName?);
 ```
 
-Store shape: `recipes: Map<number, Recipe>`, `recipeList: Recipe[]`
-Methods: `setRecipe`, `setRecipes`, `getRecipe`, `hasRecipe`, `clear`
+Factory injects a `PlatformStorage` (`@sudobility/di`) so web (localStorage) and RN (AsyncStorage adapter) share one store. Persists via `zustand/middleware` with a custom replacer/reviver that serializes the `recipes: Map<number, Recipe>` as entries. Default key `mixr-recipe-storage`. Shape: `recipes` (Map), `recipeList` (array); methods `setRecipe`, `setRecipes`, `getRecipe`, `hasRecipe`, `clear`.
 
-## Peer Dependencies
+## Dependency / Architecture Notes
 
-- `@sudobility/di` >= 1.5.36
-- `@sudobility/mixr_types` >= 0.0.8
-- `@sudobility/types` >= 1.9.51
-- `@tanstack/react-query` >= 5.0.0
-- `react` >= 18.0.0
-- `zustand` >= 5.0.0
+- Peer deps: `@sudobility/di ^1.5.85`, `@sudobility/mixr_types ^0.0.31`, `@sudobility/types ^1.9.78`, `@tanstack/react-query >=5`, `react >=18`, `zustand >=5`.
+- All public API types come from `@sudobility/mixr_types`, re-exported through `src/types.ts` and `src/index.ts` — add new type re-exports there, don't redefine locally.
+- `RecipeListParams` in `mixr-client.ts` is a deprecated alias for `PaginationQueryParams`.
+- Consumers (and this repo) need `.npmrc` with `@sudobility:registry=https://npm.pkg.github.com` to resolve `@sudobility/*` from GitHub Packages.
 
-## Architecture
+## Gotchas
 
-```
-mixr_client (this package)
-    ^
-mixr_lib (business logic)
-    ^
-mixr (frontend)
-```
-
-## Code Patterns
-
-### Error Handling
-```typescript
-const response = await networkClient.get<T>(url, { headers });
-if (!response.ok || !response.data) {
-  throw handleApiError(response, 'operation name');
-}
-return response.data;
-```
-
-### Hook with Store
-```typescript
-export function useRecipe(client: MixrClient, useRecipeStore: UseRecipeStore, recipeId: number) {
-  const store = useRecipeStore();
-  return useQuery({
-    queryKey: ['recipes', 'detail', recipeId],
-    queryFn: () => client.getRecipeById(recipeId),
-    placeholderData: store.getRecipe(recipeId) ? { ... } : undefined,
-  });
-}
-```
-
-## Git Workflow
-
-- Do not use feature branches for code changes. Always stay on the current branch.
+- **No `test` script** — it's `test:unit` / `test:watch`.
+- **ESM import fixup is mandatory**: `tsc` emits extensionless relative imports (`bundler` resolution); `scripts/fix-esm-imports.mjs` rewrites them to `.js`/`index.js` so Node's ESM loader works. The script is idempotent and never fails the build (unresolvable specifiers → warnings). Running bare `tsc` without it yields output Node can't import.
+- Build uses `tsconfig.build.json` (extends `tsconfig.json`, excludes tests) — don't point the build at `tsconfig.json`.
+- tsconfig is very strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noUnusedLocals/Parameters`); typecheck accordingly.
