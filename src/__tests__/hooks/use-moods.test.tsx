@@ -66,7 +66,7 @@ describe('useMoods', () => {
       statusText: 'OK',
       headers: {},
       success: true,
-      data: { success: true, data: mockMoods, count: 2 },
+      data: { success: true, data: mockMoods },
       timestamp: new Date().toISOString(),
     });
 
@@ -100,7 +100,7 @@ describe('useMoods', () => {
       statusText: 'OK',
       headers: {},
       success: true,
-      data: { success: true, data: null, count: 0 },
+      data: { success: true, data: null },
       timestamp: new Date().toISOString(),
     });
 
@@ -118,7 +118,7 @@ describe('useMoods', () => {
       statusText: 'OK',
       headers: {},
       success: true,
-      data: { success: true, data: [], count: 0 },
+      data: { success: true, data: [] },
       timestamp: new Date().toISOString(),
     });
 

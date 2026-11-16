@@ -56,5 +56,4 @@ export type {
   UserPreferences,
   UserPreferencesResponse,
   UserResponse,
-  VersionResponse,
 } from './types';

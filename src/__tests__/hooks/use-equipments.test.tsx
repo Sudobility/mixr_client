@@ -50,7 +50,7 @@ describe('useEquipments', () => {
       statusText: 'OK',
       headers: {},
       success: true,
-      data: { success: true, data: mockEquipment, count: 2 },
+      data: { success: true, data: mockEquipment },
       timestamp: new Date().toISOString(),
     });
 
@@ -72,7 +72,7 @@ describe('useEquipments', () => {
       statusText: 'OK',
       headers: {},
       success: true,
-      data: { success: true, data: mockEquipment, count: 1 },
+      data: { success: true, data: mockEquipment },
       timestamp: new Date().toISOString(),
     });
 

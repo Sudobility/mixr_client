@@ -3,7 +3,12 @@
  * Provides methods for interacting with all MIXR API endpoints
  */
 
-import type { NetworkClient } from '@sudobility/types';
+import type {
+  ApiInfoResponse,
+  BaseResponse,
+  HealthResponse,
+  NetworkClient,
+} from '@sudobility/types';
 import type {
   AddFavoriteRequest,
   AddFavoriteResponse,
@@ -13,7 +18,6 @@ import type {
   EquipmentSubcategoriesResponse,
   EquipmentSubcategory,
   GenerateRecipeRequest,
-  HealthResponse,
   IngredientListResponse,
   IngredientResponse,
   IngredientSubcategoriesResponse,
@@ -33,7 +37,6 @@ import type {
   UpdateUserRequest,
   UserPreferencesResponse,
   UserResponse,
-  VersionResponse,
 } from '../types';
 import { buildUrl, createHeaders, handleApiError } from '../utils/helpers';
 
@@ -171,19 +174,19 @@ export class MixrClient {
   // =============================================================================
 
   /**
-   * Get API version and status
+   * Get API service info (name, version, status)
    * GET /
    */
-  async getVersion(): Promise<VersionResponse> {
-    return this.request<VersionResponse>('GET', '/', 'get version');
+  async getVersion(): Promise<ApiInfoResponse> {
+    return this.request<ApiInfoResponse>('GET', '/', 'get version');
   }
 
   /**
    * Health check endpoint
    * GET /health
    */
-  async healthCheck(): Promise<HealthResponse> {
-    return this.request<HealthResponse>('GET', '/health', 'health check');
+  async healthCheck(): Promise<BaseResponse<HealthResponse>> {
+    return this.request<BaseResponse<HealthResponse>>('GET', '/health', 'health check');
   }
 
   // =============================================================================

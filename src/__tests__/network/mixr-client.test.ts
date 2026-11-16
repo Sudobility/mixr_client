@@ -31,7 +31,7 @@ describe('MixrClient', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, message: 'API running', version: '0.0.1' },
+        data: { name: 'MIXR API', version: '0.0.1', status: 'ok' },
         timestamp: new Date().toISOString(),
       };
 
@@ -53,7 +53,11 @@ describe('MixrClient', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, status: 'healthy', timestamp: new Date().toISOString() },
+        data: {
+          success: true,
+          data: { status: 'healthy', version: '0.0.1' },
+          timestamp: new Date().toISOString(),
+        },
         timestamp: new Date().toISOString(),
       };
 
@@ -81,7 +85,7 @@ describe('MixrClient', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, data: mockEquipment, count: 1 },
+        data: { success: true, data: mockEquipment },
         timestamp: new Date().toISOString(),
       };
 
@@ -103,7 +107,7 @@ describe('MixrClient', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, data: [], count: 0 },
+        data: { success: true, data: [] },
         timestamp: new Date().toISOString(),
       };
 
@@ -175,7 +179,7 @@ describe('MixrClient', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, data: mockIngredients, count: 1 },
+        data: { success: true, data: mockIngredients },
         timestamp: new Date().toISOString(),
       };
 
@@ -193,7 +197,7 @@ describe('MixrClient', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, data: [], count: 0 },
+        data: { success: true, data: [] },
         timestamp: new Date().toISOString(),
       };
 
@@ -228,7 +232,7 @@ describe('MixrClient', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, data: mockMoods, count: 1 },
+        data: { success: true, data: mockMoods },
         timestamp: new Date().toISOString(),
       };
 
@@ -319,7 +323,7 @@ describe('MixrClient', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, data: [], count: 0 },
+        data: { success: true, data: [] },
         timestamp: new Date().toISOString(),
       };
 

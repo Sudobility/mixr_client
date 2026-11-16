@@ -67,7 +67,6 @@ export type {
   RatingAggregateResponse,
   DeleteRatingResponse,
   HealthResponse,
-  VersionResponse,
   SubscriptionStatusData,
   SubscriptionStatusResponse,
   MixrErrorResponse,

@@ -87,7 +87,7 @@ describe('useRecipes', () => {
       statusText: 'OK',
       headers: {},
       success: true,
-      data: { success: true, data: mockRecipes, count: 1 },
+      data: { success: true, data: mockRecipes },
       timestamp: new Date().toISOString(),
     });
 
@@ -107,7 +107,7 @@ describe('useRecipes', () => {
       statusText: 'OK',
       headers: {},
       success: true,
-      data: { success: true, data: mockRecipes, count: 1 },
+      data: { success: true, data: mockRecipes },
       timestamp: new Date().toISOString(),
     });
 
@@ -130,7 +130,7 @@ describe('useRecipes', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, data: mockRecipes1, count: 1 },
+        data: { success: true, data: mockRecipes1 },
         timestamp: new Date().toISOString(),
       })
       .mockResolvedValueOnce({
@@ -139,7 +139,7 @@ describe('useRecipes', () => {
         statusText: 'OK',
         headers: {},
         success: true,
-        data: { success: true, data: mockRecipes2, count: 1 },
+        data: { success: true, data: mockRecipes2 },
         timestamp: new Date().toISOString(),
       });
 
